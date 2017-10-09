@@ -70,7 +70,7 @@ class MoeaOptimisationTests {
     
     //Some tests to run optimisation manually for now
 	@Test
-	@Ignore
+	//@Ignore
 	def void runMoeaOptimisationNSGA2() {
 		
 			val pathPrefix = "gen/models/ttc/" + new SimpleDateFormat("yyMMdd-HHmmss").format(new Date())
@@ -78,7 +78,7 @@ class MoeaOptimisationTests {
 			model = parser.parse('''
 				basepath <src/models/cra/>
 				metamodel <architectureCRA.ecore>
-				model <TTC_InputRDG_A.xmi>
+				model <TTC_InputRDG_D.xmi>
 				objective MinimiseCoupling maximise java { "models.moea.MaximiseCRA" }
 				objective MinimiseEmptyClasses minimise java { "models.moea.MinimiseEmptyClasses" }
 				constraint MinimiseClasslessFeatures java { "models.moea.MinimiseClasslessFeatures" }
@@ -86,13 +86,13 @@ class MoeaOptimisationTests {
 				mutate using <craEvolvers.henshin> unit "assignFeature"
 				mutate using <craEvolvers.henshin> unit "moveFeature"
 				mutate using <craEvolvers.henshin> unit "deleteEmptyClass"
-				optimisation provider moea algorithm NSGAII variation mutation evolutions 40000 population 30
+				optimisation provider moea algorithm NSGAII variation mutation evolutions 400000 population 100
 			''')
 
 			//Assert that there are no grammar issues
 			model.assertNoIssues
 
-			val oclModelProvider = new UserModelProvider(getResourceSet(), "TTC_InputRDG_A.xmi")
+			val oclModelProvider = new UserModelProvider(getResourceSet(), "TTC_InputRDG_D.xmi")
 			
 			val optimisationInterpreter = new OptimisationInterpreter("", model)
 			

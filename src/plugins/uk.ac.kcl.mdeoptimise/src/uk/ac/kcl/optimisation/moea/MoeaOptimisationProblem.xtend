@@ -8,6 +8,7 @@ import uk.ac.kcl.interpreter.guidance.GuidanceFunctionsFactory
 import uk.ac.kcl.interpreter.guidance.GuidanceFunctionAdapter
 import uk.ac.kcl.interpreter.IGuidanceFunction
 import java.util.Random
+import org.eclipse.emf.ecore.EObject
 
 class MoeaOptimisationProblem extends AbstractProblem {
 
@@ -66,16 +67,19 @@ class MoeaOptimisationProblem extends AbstractProblem {
 	override evaluate(Solution solution) {
 
 		// TODO if some constraints are the same as the objectives, they shoyuld be cached for the same model
-		val moeaSolution = solution as MoeaOptimisationSolution;
+		val moeaSolution = solution as Solution;
 
 		// Set objectives
 		getFitnessFunctions.forEach [ fitnessFunction, objectiveId |
-			moeaSolution.setObjective(objectiveId, fitnessFunction.computeFitness(moeaSolution.model))
+			moeaSolution.setObjective(objectiveId, 
+				fitnessFunction.computeFitness((moeaSolution.getVariable(0) as MoeaOptimisationVariable).model))
 		]
 
 		// Set Constraints
 		getConstraintFunctions.forEach [ constraintFunction, objectiveId |
-			moeaSolution.setConstraint(objectiveId, constraintFunction.computeFitness(moeaSolution.model))
+			moeaSolution.setConstraint(objectiveId, 
+				constraintFunction.computeFitness((moeaSolution.getVariable(0) as MoeaOptimisationVariable).model)
+			)
 		]
 		
 	}

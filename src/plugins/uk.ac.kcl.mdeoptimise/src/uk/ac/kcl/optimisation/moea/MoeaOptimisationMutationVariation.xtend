@@ -15,10 +15,13 @@ class MoeaOptimisationMutationVariation implements Variation {
 	//USed to evolve a solution using the henshin evolvers
 	override evolve(Solution[] parents) {
 
-		var parentSolution = parents.head as MoeaOptimisationSolution;
+		var parentSolution = parents.head as Solution;
 		var newSolution = parentSolution.copy
 			
-		newSolution.setModel(solutionGenerator.evolveModel(newSolution.model));
+		var variable = (parentSolution.getVariable(0) as MoeaOptimisationVariable).copy
+		variable.randomize
+		newSolution.setVariable(0, variable)
+		
 		//System.out.println("Evolved solution " + newSolution.evolutionsCounter)
 		#[newSolution]
 
