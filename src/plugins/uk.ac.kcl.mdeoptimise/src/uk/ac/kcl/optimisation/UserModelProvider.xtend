@@ -17,6 +17,8 @@ import java.util.HashMap
 import java.util.LinkedHashMap
 import java.io.File
 import java.io.PrintWriter
+import org.moeaframework.core.Solution
+import uk.ac.kcl.optimisation.moea.MoeaOptimisationVariable
 
 class UserModelProvider implements IModelProvider {
 	
@@ -60,40 +62,17 @@ class UserModelProvider implements IModelProvider {
 		solutionModel.writeModel(modelPath)
 	}
 	
-	private def storeSolutionData(String infoPath, MoeaOptimisationSolution solution){
-		
-		val infoWriter = new PrintWriter(new File(infoPath + ".txt"))
-		
-		infoWriter.println("Evaluation data for solution: " + infoPath)
-		infoWriter.println()
-		infoWriter.println("Objective values:")
-		
-		//Pretty print the objectives
-		var objectives = solution.formattedObjectives
-		objectives.forEach[key, value | 
-			infoWriter.println(String.format("%s: %s", key, value))
-		]
-		infoWriter.println("")
-		infoWriter.println("Constraint values:")
-		
-		//Pretty print the constraints
-		var constraints = solution.formattedConstraints
-		constraints.forEach[key, value | 
-			infoWriter.println(String.format("%s: %s", key, value))
-		]
-		
-		infoWriter.close
-	}
+
 	
-	def storeModelAndInfo(MoeaOptimisationSolution solution, String projectPath, Optimisation moptConfiguration) {
+	def storeModelAndInfo(Solution solution, String projectPath, Optimisation moptConfiguration) {
 		
 		val batchStartTime = new SimpleDateFormat("yyMMdd-HHmmss").format(new Date())
 		val outputPath = projectPath + "/mdeo-results/experiment-" + batchStartTime + "/"
-		val modelPath = outputPath + String.format("%08X", solution.model.hashCode) + ".xmi"
+		val modelPath = outputPath + String.format("%08X", (solution.getVariable(0) as MoeaOptimisationVariable).model.hashCode) + ".xmi"
 		
 		println("Saving results to: " + outputPath)
-		solution.model.writeModel(modelPath)
-		storeSolutionData(modelPath, solution)
+		(solution.getVariable(0) as MoeaOptimisationVariable).model.writeModel(modelPath)
+		//storeSolutionData(modelPath, solution)
 	}
 	
 	

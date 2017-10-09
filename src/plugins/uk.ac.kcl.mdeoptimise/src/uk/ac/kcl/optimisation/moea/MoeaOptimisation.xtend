@@ -9,6 +9,7 @@ import org.moeaframework.core.spi.AlgorithmFactory
 import uk.ac.kcl.interpreter.IOptimisation
 import uk.ac.kcl.mdeoptimise.OptimisationSpec
 import uk.ac.kcl.optimisation.SolutionGenerator
+import org.moeaframework.core.Solution
 
 class MoeaOptimisation implements IOptimisation {
 	
@@ -28,8 +29,8 @@ class MoeaOptimisation implements IOptimisation {
 		return getOptimisationOutcomeObjects(population);
 	}
 	
-	def Iterator<MoeaOptimisationSolution> getOptimisationOutcomeObjects(NondominatedPopulation population){
-		return population.iterator.map[ p | (p as MoeaOptimisationSolution)]
+	def Iterator<Solution> getOptimisationOutcomeObjects(NondominatedPopulation population){
+		return population.iterator.map[ p | (p as Solution)]
 	}
 	
 	/**
