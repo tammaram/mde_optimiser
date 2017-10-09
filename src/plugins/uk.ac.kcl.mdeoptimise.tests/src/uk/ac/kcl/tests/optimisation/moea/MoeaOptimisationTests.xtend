@@ -70,7 +70,7 @@ class MoeaOptimisationTests {
     
     //Some tests to run optimisation manually for now
 	@Test
-	//@Ignore
+	@Ignore
 	def void runMoeaOptimisationNSGA2() {
 		
 			val pathPrefix = "gen/models/ttc/" + new SimpleDateFormat("yyMMdd-HHmmss").format(new Date())
@@ -103,8 +103,8 @@ class MoeaOptimisationTests {
 											oclModelProvider, 
 											optimisationInterpreter.metamodel);
 
-			var optimisation = new MoeaOptimisation()
-									.execute(model.optimisation, solutionGenerator)
+//			var optimisation = new MoeaOptimisation()
+//									.execute(model.optimisation, solutionGenerator)
 			
 //			optimisation
 //				.forEach[model | oclModelProvider.storeModelAndInfo(model, pathPrefix + "/final", oclModelProvider.modelPaths.head)]

@@ -16,17 +16,14 @@ class MoeaOptimisationCrossoverVariation implements Variation {
 	
 	//USed to evolve a solution using the henshin evolvers
 	override evolve(Solution[] parents) {
-
-//		var parentSolution = parents.head as MoeaOptimisationSolution;
-//		var newSolution = parentSolution.copy
 	
-		val solutions = new ArrayList<MoeaOptimisationSolution>();	
+		val solutions = new ArrayList<Solution>();	
 		val parentModels = new ArrayList<EObject>();
 		
 		for(Solution parent : parents){
-			val solution = (parent as MoeaOptimisationSolution).copy 
+			val solution = (parent as Solution).copy 
 			solutions.add(solution)
-			parentModels.add(solution.model)
+			parentModels.add((solution.getVariable(0) as MoeaOptimisationVariable).model)
 		}
 		
 		val children = solutionGenerator.crossover(parentModels)
@@ -35,7 +32,7 @@ class MoeaOptimisationCrossoverVariation implements Variation {
 		//println("Children:" + children.size)
 		//println("Parents:" + parents.size)
 		for(var i = 0; i < children.size; i++){
-			solutions.get(i).model = children.get(i);
+			solutions.get(i).setVariable(0, new MoeaOptimisationVariable(children.get(i), solutionGenerator));
 		}
 		
 		//Some XTend WTF?

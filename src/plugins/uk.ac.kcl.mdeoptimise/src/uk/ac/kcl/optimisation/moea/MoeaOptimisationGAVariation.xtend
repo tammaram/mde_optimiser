@@ -16,21 +16,6 @@ class MoeaOptimisationGAVariation implements Variation {
 	
 	//USed to evolve a solution using the henshin evolvers
 	override evolve(Solution[] parents) {
-	
-//		val solutions = new ArrayList<MoeaOptimisationSolution>();	
-//		val parentModels = new ArrayList<EObject>();
-//		
-//		for(Solution parent : parents){
-//			val solution = (parent as MoeaOptimisationSolution).copy 
-//			solutions.add(solution)
-//			parentModels.add(solution.model)
-//		}
-//		
-//		val children = solutionGenerator.crossover(parentModels)
-//	
-//		for(var i = 0; i < children.size; i++){
-//			solutions.get(i).model = children.get(i);
-//		}
 		
 		val solutions = new ArrayList<Solution>();	
 		val parentModels = new ArrayList<EObject>();
