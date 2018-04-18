@@ -12,19 +12,19 @@ import org.eclipse.xtext.junit4.InjectWith
 import org.eclipse.xtext.junit4.XtextRunner
 import org.eclipse.xtext.junit4.util.ParseHelper
 import org.eclipse.xtext.junit4.validation.ValidationTestHelper
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
+import uk.ac.kcl.interpreter.OptimisationInterpreter
 import uk.ac.kcl.mdeoptimise.Optimisation
 import uk.ac.kcl.optimisation.SolutionGenerator
+import uk.ac.kcl.optimisation.UserModelProvider
 import uk.ac.kcl.optimisation.moea.MoeaOptimisation
 import uk.ac.kcl.tests.FullTestInjector
-import uk.ac.kcl.tests.TestModelHelper
-
-import static org.junit.Assert.*
-import static org.mockito.Mockito.*
-import uk.ac.kcl.optimisation.UserModelProvider
-import uk.ac.kcl.interpreter.OptimisationInterpreter
+import uk.ac.kcl.mdeoptimise.dashboard.api.macaddress.MacAddressRetriever
+import uk.ac.kcl.mdeoptimise.dashboard.api.hashing.Hashing
+import java.io.File
+import uk.ac.kcl.ui.launch.RunOptimisation
+import uk.ac.kcl.MDEOptimiseStandaloneSetup
 
 @RunWith(XtextRunner)
 @InjectWith(FullTestInjector)
@@ -68,18 +68,40 @@ class MoeaOptimisationTests {
         }
     }
     
+    def runMoeaOptimisationStandalone(String projectPath, String moptFilePath) {
+    	val injector = new MDEOptimiseStandaloneSetup().createInjectorAndDoEMFRegistration()
+    	var runOptimisationStandalone = injector.getInstance(RunOptimisation)
+    	
+    	runOptimisationStandalone.run(projectPath, moptFilePath)
+    }
+
+    @Test
+    def void runMoeaOptimisationStandaloneCrossoverTest(){
+		var projectFile = new File("./")
+    	var moptFileLocation = new File("src/models/cra/crossover_experiment.mopt");
+
+    	runMoeaOptimisationStandalone(projectFile.absolutePath, moptFileLocation.absolutePath)
+    }
+
+    @Test
+    def void runMoeaOptimisationStandaloneScrumPlanningTest(){
+		var projectFile = new File("./")
+    	var moptFileLocation = new File("src/models/cra/scrum_planning_base_case.mopt");
+
+    	runMoeaOptimisationStandalone(projectFile.absolutePath, moptFileLocation.absolutePath)
+    }
+
     //Some tests to run optimisation manually for now
 	@Test
-	@Ignore
 	def void runMoeaOptimisationNSGA2() {
-		
+			
 			val pathPrefix = "gen/models/ttc/" + new SimpleDateFormat("yyMMdd-HHmmss").format(new Date())
 			
 			model = parser.parse('''
 				basepath <src/models/cra/>
 				metamodel <architectureCRA.ecore>
 				model <TTC_InputRDG_C.xmi>
-				objective MinimiseCoupling maximise java { "models.moea.MaximiseCRA" }
+				objective CRA maximise java { "models.moea.MaximiseCRA" }
 				constraint MinimiseClasslessFeatures java { "models.moea.MinimiseClasslessFeatures" }
 				mutate using <craEvolvers.henshin> unit "createClass"
 				mutate using <craEvolvers.henshin> unit "assignFeature"
@@ -87,7 +109,7 @@ class MoeaOptimisationTests {
 				mutate using <craEvolvers.henshin> unit "deleteEmptyClass"
 				breed using <exDependencies.henshin> unit "exchangeMultipleDependencies" 
 					parameters { number3 => Random("[0-9]{0,2}"), number => "models.moea.RandomEvolverParameter" }
-				optimisation provider moea algorithm NSGAII variation genetic evolutions 15000 population 30
+				optimisation provider moea algorithm NSGAII variation genetic evolutions 10 population 30
 			''')
 
 			//Assert that there are no grammar issues
@@ -98,19 +120,28 @@ class MoeaOptimisationTests {
 			val oclModelProvider = new UserModelProvider(getResourceSet(), "TTC_InputRDG_C.xmi")
 			
 			val optimisationInterpreter = new OptimisationInterpreter("", model)
+			var MacAddressRetriever macAddressRetriever = new MacAddressRetriever();
+			var macAddress = macAddressRetriever.getMacAddress();
+			var moptId = Hashing.generateMoptId(
+				model.getModel().getLocation(), 
+				model.getMetamodel().getLocation());
+			var dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.SSS");
+			var date = new Date();
+			var startTime = dateFormat.format(date);
+			var experimentId = Hashing.generateExperimentId(macAddress, moptId, startTime);
 			
 			var solutionGenerator = new SolutionGenerator(
 											model, 
 											optimisationInterpreter.breedingOperators, 
 											optimisationInterpreter.mutationOperators, 
 											oclModelProvider, 
-											optimisationInterpreter.metamodel);
+											optimisationInterpreter.metamodel, experimentId);
 
 			var optimisation = new MoeaOptimisation()
 									.execute(model.optimisation, solutionGenerator)
-			
+			// /home/alxbrd/projects/alxbrd/github/mde_optimiser/src/plugins
 			optimisation
-				.forEach[m | oclModelProvider.storeModelAndInfo(m, "/home/alxbrd/projects/alxbrd/github/mde_optimiser/src/plugins/uk.ac.kcl.mdeoptimise.tests/" + pathPrefix + "/final", model)]
+				.forEach[m | oclModelProvider.storeModelAndInfo(m, "/Users/tammaramanasieva/Documents/Workspace/MDEO/src/plugins/uk.ac.kcl.mdeoptimise.tests/" + pathPrefix + "/final", model)]
 	}
 
 }

@@ -1,0 +1,42 @@
+version: '2'
+services:
+  queue:
+    build:
+      context: ./queue
+      dockerfile: Dockerfile
+    ports:
+      - "5762:5762"
+      - "8080:8080"
+  database:
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+      - "9092:9092"
+  worker:
+    build:
+      context: ./worker
+      dockerfile: Dockerfile
+    volumes:
+        - ../../src:/var/app/mdeo
+    links: 
+        - "queue"
+  dataloader:
+    build:
+      context: ./loader
+      dockerfile: Dockerfile
+    volumes:
+        - ../../dashboard/dataloader/bin:/var/app/mdeo/uk.ac.kcl.mdeoptimise.dataloader
+        - ../../dashboard/dataloader/lib:/var/app/mdeo/uk.ac.kcl.mdeoptimise.dataloader.lib
+    links:
+        - "database"
+        - "queue"
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    ports:
+      - "8085:8080"
+    volumes:
+     - ../../dashboard/web/uk.ac.kcl.mdeoptimise.dashboard:/var/app/mdeo/uk.ac.kcl.mdeoptimise.web

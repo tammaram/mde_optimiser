@@ -17,7 +17,6 @@ import uk.ac.kcl.interpreter.IModelProvider
 import uk.ac.kcl.mdeoptimise.Optimisation
 
 import static org.eclipse.emf.henshin.interpreter.impl.ChangeImpl.*
-import org.eclipse.emf.henshin.model.Rule
 import org.eclipse.emf.henshin.interpreter.impl.UnitApplicationImpl
 import uk.ac.kcl.interpreter.evolvers.parameters.IEvolverParametersFactory
 import org.eclipse.emf.henshin.model.HenshinPackage
@@ -25,12 +24,15 @@ import org.eclipse.emf.henshin.interpreter.EGraph
 import java.util.Arrays
 import uk.ac.kcl.interpreter.evolvers.parameters.EvolverParametersFactory
 import org.eclipse.emf.henshin.model.ParameterKind
+import uk.ac.kcl.mdeoptimise.dashboard.api.sender.Sender
+import uk.ac.kcl.json.JsonEncoder
 
 class SolutionGenerator {
 
     private EPackage theMetamodel = null
 	private List<Unit> breedingOperators
 	private List<Unit> mutationOperators
+	private String experimentId
 	
 	private Optimisation optimisationModel
 	private IEvolverParametersFactory evolverParametersFactory
@@ -46,13 +48,16 @@ class SolutionGenerator {
 	public UnitApplicationImpl unitRunner
 	public RuleApplicationImpl ruleRunner
 	
-	new(Optimisation model, List<Unit> breedingOperators, List<Unit> mutationOperators, IModelProvider modelProvider, EPackage metamodel){
+	private Sender sender
+	
+	new(Optimisation model, List<Unit> breedingOperators, List<Unit> mutationOperators, IModelProvider modelProvider, EPackage metamodel, String experimentId){
 		this.optimisationModel = model
 		this.breedingOperators = breedingOperators
 		this.mutationOperators = mutationOperators
 		this.initialModelProvider = modelProvider
-		this.theMetamodel = metamodel;
+		this.theMetamodel = metamodel
 		this.engine = new EngineImpl
+		this.experimentId = experimentId
 		
 		engine.getOptions().put(Engine.OPTION_DETERMINISTIC, false);
 		
@@ -62,6 +67,14 @@ class SolutionGenerator {
 		
 		//Disable henshin warnings
 		ChangeImpl.PRINT_WARNINGS = false;
+		this.sender = new Sender()
+		var message = JsonEncoder.generateWorkerRegistrationText(model, experimentId)
+		sender.sendMessage(message)
+		System.out.println("[MDEO] worker registration message sent: " + message);
+	}
+	
+	def String getExperimentId() {
+		return this.experimentId;
 	}
 
     /**
@@ -121,7 +134,6 @@ class SolutionGenerator {
 		
         // We didn't find any applicable evolvers...
         System.out.println("Model with no crossover evolvers applicable.....")
-        
 		return parents
 	}
 

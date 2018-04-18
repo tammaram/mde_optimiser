@@ -3,11 +3,10 @@ package uk.ac.kcl.optimisation.moea
 import java.util.List
 import org.moeaframework.core.Solution
 import org.moeaframework.problem.AbstractProblem
-import uk.ac.kcl.optimisation.SolutionGenerator
-import uk.ac.kcl.interpreter.guidance.GuidanceFunctionsFactory
-import uk.ac.kcl.interpreter.guidance.GuidanceFunctionAdapter
 import uk.ac.kcl.interpreter.IGuidanceFunction
-import java.util.Random
+import uk.ac.kcl.interpreter.guidance.GuidanceFunctionAdapter
+import uk.ac.kcl.interpreter.guidance.GuidanceFunctionsFactory
+import uk.ac.kcl.optimisation.SolutionGenerator
 
 class MoeaOptimisationProblem extends AbstractProblem {
 
@@ -15,6 +14,7 @@ class MoeaOptimisationProblem extends AbstractProblem {
 
 	private List<IGuidanceFunction> fitnessFunctions;
 	private List<IGuidanceFunction> constraintFunctions;
+	private IntermediateSolutionsCollector solutionsCollector;
 
 	new(int numberOfVariables, int numberOfObjectives, int numberOfConstraints) {
 		super(numberOfVariables, numberOfObjectives, numberOfConstraints)
@@ -25,6 +25,9 @@ class MoeaOptimisationProblem extends AbstractProblem {
 		this(1, solutionGenerator.optimisationModel.objectives.size(),
 			solutionGenerator.optimisationModel.constraints.size())
 		this.solutionGenerator = solutionGenerator
+		this.solutionsCollector = new IntermediateSolutionsCollector(
+			solutionGenerator.optimisationModel /* optimisation model */,
+			solutionGenerator.experimentId /* experiment ID */);
 	}
 
 	def SolutionGenerator getSolutionGenerator() {
@@ -65,7 +68,7 @@ class MoeaOptimisationProblem extends AbstractProblem {
 
 	override evaluate(Solution solution) {
 
-		// TODO if some constraints are the same as the objectives, they shoyuld be cached for the same model
+		// TODO if some constraints are the same as the objectives, they should be cached for the same model
 		val moeaSolution = solution as MoeaOptimisationSolution;
 
 		// Set objectives
@@ -78,6 +81,8 @@ class MoeaOptimisationProblem extends AbstractProblem {
 			moeaSolution.setConstraint(objectiveId, constraintFunction.computeFitness(moeaSolution.model))
 		]
 		
+		// Collect the current intermediate solution
+		solutionsCollector.addIntermediateSolution(moeaSolution)
 	}
 
 	override newSolution() {

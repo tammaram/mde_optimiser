@@ -1,17 +1,21 @@
 package uk.ac.kcl.interpreter
 
-import uk.ac.kcl.mdeoptimise.Optimisation
-import org.eclipse.emf.henshin.model.resource.HenshinResourceSet
-import org.eclipse.emf.ecore.EPackage
-import java.util.List
-import org.eclipse.emf.henshin.model.Unit
-import org.eclipse.emf.common.util.URI
-import uk.ac.kcl.optimisation.moea.MoeaOptimisation
-import uk.ac.kcl.optimisation.SolutionGenerator
-import uk.ac.kcl.optimisation.UserModelProvider
 import java.util.LinkedList
+import java.util.List
 import org.eclipse.core.runtime.IPath
 import org.eclipse.core.runtime.Path
+import org.eclipse.emf.common.util.URI
+import org.eclipse.emf.ecore.EPackage
+import org.eclipse.emf.henshin.model.Unit
+import org.eclipse.emf.henshin.model.resource.HenshinResourceSet
+import uk.ac.kcl.mdeoptimise.Optimisation
+import uk.ac.kcl.optimisation.SolutionGenerator
+import uk.ac.kcl.optimisation.UserModelProvider
+import uk.ac.kcl.optimisation.moea.MoeaOptimisation
+import uk.ac.kcl.mdeoptimise.dashboard.api.macaddress.MacAddressRetriever
+import uk.ac.kcl.mdeoptimise.dashboard.api.hashing.Hashing
+import java.text.SimpleDateFormat
+import java.util.Date
 
 class OptimisationInterpreter {
 	
@@ -34,11 +38,23 @@ class OptimisationInterpreter {
 		
 		// This model provider loads the model given by the user in the DSL
 		val userModelProvider = new UserModelProvider(getResourceSet(projectRootPath.append(model.basepath.location).toPortableString), model.model.location)
+		
+		var MacAddressRetriever macAddressRetriever = new MacAddressRetriever();
+		var macAddress = macAddressRetriever.getMacAddress();
+		var moptId = Hashing.generateMoptId(
+			model.getModel().getLocation(), 
+			model.getMetamodel().getLocation());
+		var dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+		var date = new Date();
+		var startTime = dateFormat.format(date);
+		var experimentId = Hashing.generateExperimentId(macAddress, moptId, startTime);
+		
 		var solutionGenerator = new SolutionGenerator(model, 
 											getBreedingOperators, 
 											getMutationOperators, 
 											userModelProvider, 
-											getMetamodel);
+											getMetamodel,
+											experimentId);
 
 		var optimisation = new MoeaOptimisation()
 									.execute(model.optimisation, solutionGenerator)		
